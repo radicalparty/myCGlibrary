@@ -1,6 +1,22 @@
 #include <iterator>
-#include <iostream>
+#include <bits/stdc++.h>
+#define dim 2
+using ll = long long;
 using namespace std;
+
+struct vertex {
+    ll idx;
+    ll point[dim];
+    bool ear;
+    friend std::ostream& operator<<(std::ostream& os, const vertex& v) {
+        os << "Vertex " << v.idx << ": (";
+        for (int i = 0; i < dim - 1; ++i) {
+            os << v.point[i] << ", ";
+        }
+        os << v.point[dim - 1] << ") Ear: " << std::boolalpha << v.ear;
+        return os;
+    }
+};
 
 template <typename T>
 class CircularList {
@@ -26,6 +42,18 @@ public:
 
         U& operator*() const {
             return current->data;
+        }
+
+        U* operator->() const {
+            return &(current->data);
+        }
+
+        Iterator<U> nxt() const {
+            return Iterator<U>(current->next, list);
+        }
+
+        Iterator<U> prv() const {
+            return Iterator<U>(current->prev, list);
         }
 
         // 전위 증가 연산자 (++it)
@@ -142,7 +170,7 @@ public:
 
         Node* current = head;
         do {
-            std::cout << current->data << " ";
+            std::cout << (current->data) << " ";
             current = current->next;
         } while (current != head);
 
