@@ -46,6 +46,8 @@ struct polygon{
         return sum;
     }
 
+
+    //대각선-선분 교차 판정
     bool diagonalie(clist<vertex>::Iterator<vertex> a,clist<vertex>::Iterator<vertex> b){
         auto x = poly.begin();
         do{
@@ -56,7 +58,7 @@ struct polygon{
         }while (x != poly.begin());
         return true;
     }
-
+    //내부/외부 여부 판정
     bool Incone(cqiter a, cqiter b){
         auto nxt = a.nxt();
         auto prv = a.prv();
@@ -66,6 +68,7 @@ struct polygon{
         return !((tarea(a->point, b->point, nxt->point) >= 0) && tarea(b->point, a->point, prv->point) >= 0);
     }
 
+    //대각선 판정
     bool diagonal(cqiter a, cqiter b){
         return Incone(a, b) && Incone(b, a) && diagonalie(a, b);
     }
