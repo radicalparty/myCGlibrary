@@ -16,6 +16,14 @@ struct vertex {
         os << v.point[dim - 1] << ") Ear: " << std::boolalpha << v.ear;
         return os;
     }
+
+    bool operator==(vertex b) const{
+        return idx == b.idx;
+    }
+
+    bool operator!=(vertex b) const{
+        return !(*this == b);
+    }
 };
 
 template <typename T>

@@ -72,6 +72,63 @@ struct polygon{
     bool diagonal(cqiter a, cqiter b){
         return Incone(a, b) && Incone(b, a) && diagonalie(a, b);
     }
+
+    //Graham Scan 구현
+
+    vector<vertex> graham_scan() const{
+        vector<vertex> hull;
+        auto p = poly.begin();
+        vertex c = *p;
+        do{
+            if ((c.point[1] > p->point[1])
+            || ((c.point[1] == p->point[1]) && (c.point[0] < p->point[0])))   c = *p;
+            p = p.nxt();
+        } while (p != poly.end());
+        do{
+            if (c != *p)    hull.emplace_back(*p);
+            p = p.nxt();
+        } while (p != poly.end());
+        cout << "lowest point: " << c.point[0] << " " << c.point[1] << "\n";
+        vector<vertex> st;
+        sort(begin(hull), end(hull), [c](vertex& a, vertex& b){
+           ll ax = c.point[0] - a.point[0], ay = c.point[1] - a.point[1];
+           ll bx = c.point[0] - b.point[0], by = c.point[1] - b.point[1];
+           if (ax * bx < 0) return ax < bx;
+           else if (ax > 0){
+               if (bx == 0) return false;
+               else{
+                   if (ay * bx == ax * by)  return ax < bx;
+                   else return ay * bx < ax * by;
+               }
+           }
+           else if (ax < 0){
+               if (bx == 0) return true;
+               else{
+                   if (ay * bx == ax * by)  return ax > bx;
+                   else return ay * bx > ax * by;
+               }
+           }
+           else{
+               if (bx == 0) return ay > by;
+               else{
+                   return bx > 0;
+               }
+           }
+        });
+        st.emplace_back(c);
+        for (auto it = begin(hull); it != end(hull); it++){
+            if (st.size() < 2){
+                st.emplace_back(*it);
+            }
+            else{
+                while (st.size() > 2 && tarea(st[st.size() - 2].point, st[st.size() - 1].point, it->point) <= 0){
+                    st.pop_back();
+                }
+                st.emplace_back(*it);
+            }
+        }
+        return st;
+    }
 };
 
 
