@@ -1,7 +1,5 @@
 #include "CircularList.cpp"
 #define clist CircularList
-using ll = long long;
-#define dim 2
 #define cqiter clist<vertex>::Iterator<vertex>
 using namespace std;
 
@@ -35,6 +33,9 @@ static bool intersect(const ll* a, const ll* b, const ll* c, const ll* d){
 struct polygon{
     clist<vertex> poly;
     polygon(): poly() {}
+    void insert(vertex x){
+        poly.insert(x);
+    }
     ll AreaPoly() const{
         ll sum = 0;
         auto p = poly.begin();
@@ -88,32 +89,30 @@ struct polygon{
             if (c != *p)    hull.emplace_back(*p);
             p = p.nxt();
         } while (p != poly.end());
-        cout << "lowest point: " << c.point[0] << " " << c.point[1] << "\n";
         vector<vertex> st;
         sort(begin(hull), end(hull), [c](vertex& a, vertex& b){
            ll ax = c.point[0] - a.point[0], ay = c.point[1] - a.point[1];
            ll bx = c.point[0] - b.point[0], by = c.point[1] - b.point[1];
-           if (ax * bx < 0) return ax < bx;
-           else if (ax > 0){
-               if (bx == 0) return false;
-               else{
-                   if (ay * bx == ax * by)  return ax < bx;
-                   else return ay * bx < ax * by;
-               }
-           }
-           else if (ax < 0){
-               if (bx == 0) return true;
-               else{
-                   if (ay * bx == ax * by)  return ax > bx;
-                   else return ay * bx > ax * by;
-               }
-           }
-           else{
-               if (bx == 0) return ay > by;
-               else{
-                   return bx > 0;
-               }
-           }
+            if (ax == 0){
+                if (bx < 0)  return true;
+                else if (bx == 0)    return ay < by;
+                return false;
+            }
+            else if (bx == 0){
+                if (ax < 0)  return false;
+                return true;
+            }
+            else if (ax * bx < 0){
+                if (bx < 0)  return true;
+                return false;
+            }
+            if (ax * by == ay * bx){
+                if (ay == 0 && by == 0){
+                    return ax < bx;
+                }
+                return ay < by;
+            }
+            return ax * by > ay * bx;
         });
         st.emplace_back(c);
         for (auto it = begin(hull); it != end(hull); it++){
