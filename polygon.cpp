@@ -78,7 +78,7 @@ struct polygon{
 
     vector<vertex> graham_scan() const{
         vector<vertex> hull;
-        auto p = poly.begin();
+        CircularList<vertex>::Iterator<vertex> p = poly.begin();
         vertex c = *p;
         do{
             if ((c.point[1] > p->point[1])

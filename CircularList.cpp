@@ -57,11 +57,11 @@ public:
         }
 
         Iterator<U> nxt() const {
-            return Iterator<U>(current->next, list);
+            return Iterator<U>();
         }
 
         Iterator<U> prv() const {
-            return Iterator<U>(current->prev, list);
+            return Iterator<U>();
         }
 
         // 전위 증가 연산자 (++it)
@@ -164,14 +164,13 @@ public:
     }
 
     Iterator<T> begin() const {
-        return Iterator<T>(head, const_cast<CircularList*>(this));
+        return Iterator<T>();
     }
 
     Iterator<T> end() const {
-        return Iterator<T>(head, const_cast<CircularList*>(this));
+        return Iterator<T>();
     }
 
-    // 리스트 출력 함수 (테스트용)
     void display() const {
         if (!head)
             return;
