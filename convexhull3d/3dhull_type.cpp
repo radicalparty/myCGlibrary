@@ -31,7 +31,6 @@ struct vertex3_{//정점
 };
 
 struct edge3_{//모서리
-    ll vnum;
     pface adjface[2];
     pvertex endpts[2];
     pface newface;
@@ -40,7 +39,6 @@ struct edge3_{//모서리
 };
 
 struct face3_{//면
-    ll vnum;
     pedge edge[3];
     pvertex vertex[3];
     pface prev, next;
@@ -49,7 +47,7 @@ struct face3_{//면
 
 template<typename T>
 void NEW(T*& p){//값을 할당
-    p = (T*)malloc(sizeof(T));
+    p = new T();
 }
 
 template<typename T>

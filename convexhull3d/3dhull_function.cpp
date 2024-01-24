@@ -117,8 +117,8 @@ void DoubleTriangle(){
             std::cout << "All points are coplanar!\n";
             exit(0);
         }
-        vol = VolumeSign(f0, v3);
         v3 = v3->next;
+        vol = VolumeSign(f0, v3);
     }
     vertices = v3;
 }
@@ -129,12 +129,13 @@ void ConstructHull(){//볼록 껍질 구성
 
     do{
         vnxt = v->next;
-        if (!v->mark){
+        if (!v->mark){//쓰이지 않은 점들을 추가
             v->mark = PROCESSED;
             AddOne(v);
             CleanUp();
         }
         v = vnxt;
+        cout << v->vnum << "\n";
         print_ch();
     } while (v != vertices);
 }
@@ -197,24 +198,27 @@ bool collinear(pvertex a, pvertex b, pvertex c){
 
 //Hull에 점을 넣는 과정
 bool AddOne(pvertex p){
-    pface f; pedge e, tmp; bool vis = false;
+    pface f; pedge e, tmp;
+    bool vis = false;
 
     f = faces;
+    int cnt = 0;
     do{
         //모든 면에 대해서 점이 내부에 있는지, 외부에 있는지 확인
         if (VolumeSign(f, p) < 0){
             f->visible = VISIBLE;
             vis = true;
         }
+        cnt++;
         f = f->next;
     } while (f != faces);
-
     //만약 어디에서나 true, 즉 점이 내부에 존재할 경우, p를 제거해도 상관 없음
     if (!vis){
         p->onhull = !ONHULL; return false;
     }
 
     e = edges;
+    int cp = 0;
     do{
         tmp = e->next;
         //인접한 두 면이 모두 p에서 visible할 때 -> 이제 모서리 e는 볼록 껍질을 구성할 수 없음
@@ -227,7 +231,6 @@ bool AddOne(pvertex p){
         }
         e = tmp;
     } while (e != edges);
-
     return true;
 }
 
@@ -238,12 +241,15 @@ pface makeConeFace(pedge e, pvertex p){
     //두 개의 새로운 edge 생성
     for (int i = 0; i < 2; i++){
         //만약 edge가 존재하면, 복사
-        if (!(new_edge[i] = e->endpts[i]->duplicate)){
+        if (e->endpts[i]->duplicate == nullptr){
             //아니면, 새로운 edge를 생성
             new_edge[i] = makeNullEdge();
             new_edge[i]->endpts[0] = e->endpts[i];
             new_edge[i]->endpts[1] = p;
             e->endpts[i]->duplicate = new_edge[i];
+        }
+        else{
+            new_edge[i] = e->endpts[i]->duplicate;
         }
     }
 
@@ -257,7 +263,7 @@ pface makeConeFace(pedge e, pvertex p){
     //new_face를 edge의 인접면에 저장
     for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
-            if (!new_edge[i]->adjface[j]){
+            if (new_edge[i]->adjface[j] == nullptr){
                 new_edge[i]->adjface[j] = new_face;
                 break;
             }
@@ -375,4 +381,3 @@ void print_ch(){
     } while (v != vertices);
     std::cout << "-----------------------\n";
 }
-
