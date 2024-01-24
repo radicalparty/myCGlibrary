@@ -1,11 +1,14 @@
 #include "3dhull_type.cpp"
+#define ck exit(0);
 
+void convex3d();
 //function
-void ReadVertices(ll n);
+void ReadVertices();
 void DoubleTriangle();
 void ConstructHull();
 void CleanUp();
 
+void print_ch();
 void makeCcw(pface f, pedge e, pvertex p);
 ll VolumeSign(pface f, pvertex p);
 bool collinear(pvertex a, pvertex b, pvertex c);
@@ -22,9 +25,9 @@ pedge makeNullEdge();
 pface makeNullFace();
 
 //variable(원형 리스트)
-pvertex vertices;
-pedge edges;
-pface faces;
+pvertex vertices = nullptr;
+pedge edges = nullptr;
+pface faces = nullptr;
 
 //빈 vertex 생성
 pvertex makeNullVertex(){
@@ -58,19 +61,19 @@ pface makeNullFace(){
     return f;
 }
 
-void convex3d(ll n){
-    ReadVertices(n);
+void convex3d(){
+    ReadVertices();
     DoubleTriangle();
     ConstructHull();
 }
 
 //입력
-void ReadVertices(ll n){
+void ReadVertices(){
     pvertex v;
+    ll n; std::cin >> n;
     for (ll i = 0; i < n; i++){
         v = makeNullVertex();
         std::cin >> v->v[X] >> v->v[Y] >> v->v[Z]; v->vnum = i;
-        ADD(vertices, v);
     }
 }
 
@@ -107,16 +110,16 @@ void DoubleTriangle(){
     f1->edge[2]->adjface[1] = f0;
 
     v3 = v2->next;
+
     vol = VolumeSign(f0, v3);
     while (!vol){//점을 이동시키면서 사면체 존재 확인
-        if (v3->next == v0){//사면체가 존재하지 않을 경우, 모든 점이 한 평면에 존재 -> 3d 볼록 껍질 없음
+        if (v3 == v0){//사면체가 존재하지 않을 경우, 모든 점이 한 평면에 존재 -> 3d 볼록 껍질 없음
             std::cout << "All points are coplanar!\n";
             exit(0);
         }
         vol = VolumeSign(f0, v3);
         v3 = v3->next;
     }
-
     vertices = v3;
 }
 
@@ -132,6 +135,7 @@ void ConstructHull(){//볼록 껍질 구성
             CleanUp();
         }
         v = vnxt;
+        print_ch();
     } while (v != vertices);
 }
 
@@ -356,9 +360,19 @@ void CleanVertices(){
     //초기화
     v = vertices;
     do{
-        v->duplicate = NULL;
+        v->duplicate = nullptr;
         v->onhull = !ONHULL;
         v = v->next;
     } while (v != vertices);
+}
+
+void print_ch(){
+    pvertex v = vertices;
+    std::cout << "Convex Hull\n";
+    do{
+        std::cout << v->v[0] << " " << v->v[1] << " " << v->v[2] << "\n";
+        v = v->next;
+    } while (v != vertices);
+    std::cout << "-----------------------\n";
 }
 

@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+using namespace std;
 
 typedef struct vertex3_ tvertex;
 typedef struct edge3_ tedge;
@@ -30,6 +31,7 @@ struct vertex3_{//정점
 };
 
 struct edge3_{//모서리
+    ll vnum;
     pface adjface[2];
     pvertex endpts[2];
     pface newface;
@@ -38,6 +40,7 @@ struct edge3_{//모서리
 };
 
 struct face3_{//면
+    ll vnum;
     pedge edge[3];
     pvertex vertex[3];
     pface prev, next;
@@ -46,7 +49,7 @@ struct face3_{//면
 
 template<typename T>
 void NEW(T*& p){//값을 할당
-    p = new T();
+    p = (T*)malloc(sizeof(T));
 }
 
 template<typename T>
@@ -57,17 +60,17 @@ void DELETE(T*& head, T*& p){//값을 제거하고 원형 리스트 유지
     p->prev->next = p->next;
     free(p);
 }
-
 template<typename T>
 void ADD(T*& head, T*& p){//값을 원형 리스트에 추가
     if (head){
         p->next = head;
         p->prev = head->prev;
+        (head->prev)->next = p;
         head->prev = p;
-        p->prev->next = p;
     }
     else{
         head = p;
-        head->next = head->prev = p;
+        head->next = p;
+        head->prev = p;
     }
 }
