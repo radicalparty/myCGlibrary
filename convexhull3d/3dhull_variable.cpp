@@ -1,8 +1,8 @@
 #include <bits/stdc++.h>
 
-typedef struct vertex_ tvertex;
-typedef struct edge_ tedge;
-typedef struct face_ tface;
+typedef struct vertex3_ tvertex;
+typedef struct edge3_ tedge;
+typedef struct face3_ tface;
 
 typedef tvertex *pvertex;
 typedef tedge *pedge;
@@ -11,29 +11,32 @@ using ll = long long;
 #define X 0
 #define Y 1
 #define Z 2
+
 #define ONHULL true
 #define REMOVED true
 #define VISIBLE true
 #define PROCESSED true
 
-struct vertex_{//정점
+struct vertex3_{//정점
     ll v[3], vnum;
     bool onhull, mark;
     pedge duplicate;
     pvertex prev, next;
 };
 
-struct edge_{//모서리
+struct edge3_{//모서리
     pface adjface[2];
     pvertex endpts[2];
     pface newface;
+    bool del;
     pedge prev, next;
 };
 
-struct face_{//면
+struct face3_{//면
     pedge edge[3];
     pvertex vertex[3];
     pface prev, next;
+    bool visible;
 };
 
 template<typename T>
