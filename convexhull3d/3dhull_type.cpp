@@ -17,6 +17,8 @@ using ll = long long;
 #define VISIBLE true
 #define PROCESSED true
 
+
+
 struct vertex3_{//정점
     ll v[3], vnum;
     bool onhull, mark;

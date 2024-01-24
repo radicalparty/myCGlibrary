@@ -1,14 +1,22 @@
-#include "3dhull_variable.cpp"
+#include "3dhull_type.cpp"
 
 //function
-ll VolumeSign(pface f, pvertex p);
 void ReadVertices(ll n);
 void DoubleTriangle();
 void ConstructHull();
+void CleanUp();
+
+void makeCcw(pface f, pedge e, pvertex p);
+ll VolumeSign(pface f, pvertex p);
 bool Colinear(pvertex a, pvertex b, pvertex c);
 bool AddOne(pvertex p);
 pface makeFace(pvertex a, pvertex b, pvertex c, pface fold);
 pface makeConeFace(pedge f, pvertex a);
+
+
+pvertex makeNullVertex();
+pedge makeNullEdge();
+pface makeNullFace();
 
 //variable(원형 리스트)
 pvertex vertices;
@@ -50,6 +58,7 @@ pface makeNullFace(){
 void convex3d(ll n){
     ReadVertices(n);
     DoubleTriangle();
+    ConstructHull();
 }
 
 //입력
@@ -146,7 +155,8 @@ ll VolumeSign(pface f, pvertex p){//행렬식 이용한 부피 계산 후 Coplan
     else    return 0;
 }
 
-pface makeFace(pvertex a, pvertex b, pvertex c, pface fold){//면 만들기
+//면 만들기
+pface makeFace(pvertex a, pvertex b, pvertex c, pface fold){
     pface f;
     pedge e0, e1, e2;
 
@@ -156,10 +166,12 @@ pface makeFace(pvertex a, pvertex b, pvertex c, pface fold){//면 만들기
         e0 = fold->edge[2]; e1 = fold->edge[1]; e2 = fold->edge[0];
     }
 
+    //edge 생성
     e0->endpts[0] = a; e0->endpts[1] = b;
     e1->endpts[0] = b; e1->endpts[1] = c;
     e2->endpts[0] = c; e2->endpts[1] = a;
 
+    //면 생성
     f = makeNullFace();
     f->edge[0] = e0; f->edge[1] = e1; f->edge[2] = e2;
     f->vertex[0] = a; f->vertex[1] = b; f->vertex[2] = c;
@@ -168,7 +180,8 @@ pface makeFace(pvertex a, pvertex b, pvertex c, pface fold){//면 만들기
     return f;
 }
 
-bool Colinear(pvertex a, pvertex b, pvertex c){//세 점의 Colinear 여부 확인
+//세 점의 Colinear 여부 확인
+bool Colinear(pvertex a, pvertex b, pvertex c){
     return ((c->v[Z] - a->v[Z]) * (b->v[Y] - a->v[Y]) == (c->v[Y] - a->v[Y]) * (b->v[Z] - a->v[Z]) &&
             (c->v[Z] - a->v[Z]) * (b->v[X] - a->v[X]) == (c->v[X] - a->v[X]) * (b->v[Z] - a->v[Z]) &&
             (c->v[Y] - a->v[Y]) * (b->v[X] - a->v[X]) == (c->v[X] - a->v[X]) * (b->v[Y] - a->v[Y])
@@ -211,6 +224,60 @@ bool AddOne(pvertex p){
     return true;
 }
 
-pface makeConeFace(pedge f, pvertex p){
+pface makeConeFace(pedge e, pvertex p){
+    pedge new_edge[2];
+    pface new_face;
+
+    //두 개의 새로운 edge 생성
+    for (int i = 0; i < 2; i++){
+        //만약 edge가 존재하면, 복사
+        if (!(new_edge[i] = e->endpts[i]->duplicate)){
+            //아니면, 새로운 edge를 생성
+            new_edge[i] = makeNullEdge();
+            new_edge[i]->endpts[0] = e->endpts[i];
+            new_edge[i]->endpts[1] = p;
+            e->endpts[i]->duplicate = new_edge[i];
+        }
+    }
+
+    //새로운 면 생성
+    new_face = makeNullFace();
+    new_face->edge[0] = e;
+    new_face->edge[1] = new_edge[0];
+    new_face->edge[2] = new_edge[1];
+    makeCcw(new_face, e, p);
+
+    //new_face를 edge의 인접면에 저장
+    for (int i = 0; i < 2; i++){
+        for (int j = 0; j < 2; j++){
+            if (!new_edge[i]->adjface[j]){
+                new_edge[i]->adjface[j] = new_face;
+                break;
+            }
+        }
+    }
+    return new_face;
+}
+
+void makeCcw(pface f, pedge e, pvertex p){
+    pface fv; pedge ev; int i = 0;
+    //p에서 볼 수 있는 면 선택
+    if (e->adjface[0]->visible) fv = e->adjface[0];
+    else fv = e->adjface[1];
+
+    for (i = 0; fv->vertex[i] != e->endpts[0]; i++) ;
+
+    if (fv->vertex[(i + 1) % 3] != e->endpts[1]){
+        f->vertex[0] = e->endpts[1];
+        f->vertex[1] = e->endpts[0];
+    }
+    else{
+        f->vertex[0] = e->endpts[0];
+        f->vertex[1] = e->endpts[1];
+
+    }
+}
+
+void CleanUp(){
 
 }
