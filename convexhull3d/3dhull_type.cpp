@@ -17,7 +17,10 @@ using ll = long long;
 #define VISIBLE true
 #define PROCESSED true
 
-
+template<typename T>
+void swap(T* a, T* b){
+    T tmp = *a; *a = *b; *b = tmp;
+}
 
 struct vertex3_{//정점
     ll v[3], vnum;

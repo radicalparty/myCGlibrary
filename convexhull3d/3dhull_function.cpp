@@ -8,11 +8,14 @@ void CleanUp();
 
 void makeCcw(pface f, pedge e, pvertex p);
 ll VolumeSign(pface f, pvertex p);
-bool Colinear(pvertex a, pvertex b, pvertex c);
+bool collinear(pvertex a, pvertex b, pvertex c);
 bool AddOne(pvertex p);
 pface makeFace(pvertex a, pvertex b, pvertex c, pface fold);
-pface makeConeFace(pedge f, pvertex a);
+pface makeConeFace(pedge e, pvertex p);
 
+void CleanEdges();
+void CleanFaces();
+void CleanVertices();
 
 pvertex makeNullVertex();
 pedge makeNullEdge();
@@ -79,9 +82,9 @@ void DoubleTriangle(){
     ll vol;
 
     v0 = vertices;
-    while (Colinear(v0, v0->next, v0->next->next)){//세 점이 일직선이 아닌, 즉 삼각형을 이루는 값을 찾기
-        if (v0->next == vertices){//임의의 세 점에 대해서 Colinear -> 볼록 껍질 없음.
-            std::cout << "All points are Colinear!\n";
+    while (collinear(v0, v0->next, v0->next->next)){//세 점이 일직선이 아닌, 즉 삼각형을 이루는 값을 찾기
+        if (v0->next == vertices){//임의의 세 점에 대해서 collinear -> 볼록 껍질 없음.
+            std::cout << "All points are collinear!\n";
             exit(0);
         }
         v0 = v0->next;
@@ -128,7 +131,7 @@ void ConstructHull(){//볼록 껍질 구성
             AddOne(v);
             CleanUp();
         }
-
+        v = vnxt;
     } while (v != vertices);
 }
 
@@ -180,8 +183,8 @@ pface makeFace(pvertex a, pvertex b, pvertex c, pface fold){
     return f;
 }
 
-//세 점의 Colinear 여부 확인
-bool Colinear(pvertex a, pvertex b, pvertex c){
+//세 점의 collinear 여부 확인
+bool collinear(pvertex a, pvertex b, pvertex c){
     return ((c->v[Z] - a->v[Z]) * (b->v[Y] - a->v[Y]) == (c->v[Y] - a->v[Y]) * (b->v[Z] - a->v[Z]) &&
             (c->v[Z] - a->v[Z]) * (b->v[X] - a->v[X]) == (c->v[X] - a->v[X]) * (b->v[Z] - a->v[Z]) &&
             (c->v[Y] - a->v[Y]) * (b->v[X] - a->v[X]) == (c->v[X] - a->v[X]) * (b->v[Y] - a->v[Y])
@@ -260,13 +263,14 @@ pface makeConeFace(pedge e, pvertex p){
 }
 
 void makeCcw(pface f, pedge e, pvertex p){
-    pface fv; pedge ev; int i = 0;
-    //p에서 볼 수 있는 면 선택
+    pface fv; int i = 0;
+    //p에서 볼 수 있는 면 선택(없어지는 면)
     if (e->adjface[0]->visible) fv = e->adjface[0];
     else fv = e->adjface[1];
 
     for (i = 0; fv->vertex[i] != e->endpts[0]; i++) ;
 
+    //시계 방향, 반시계 방향 구분해서 꼭짓점 대입
     if (fv->vertex[(i + 1) % 3] != e->endpts[1]){
         f->vertex[0] = e->endpts[1];
         f->vertex[1] = e->endpts[0];
@@ -274,10 +278,87 @@ void makeCcw(pface f, pedge e, pvertex p){
     else{
         f->vertex[0] = e->endpts[0];
         f->vertex[1] = e->endpts[1];
-
+        swap(f->edge[1], f->edge[2]);
     }
+
+    f->vertex[2] = p;
 }
 
+//새 볼록 껍질에서 사라져야할 점, 선, 면 제거
 void CleanUp(){
-
+    CleanEdges();
+    CleanFaces();
+    CleanVertices();
 }
+
+//face 제거
+void CleanFaces(){
+    pface f, t;
+    while (faces && faces->visible){
+        f = faces; DELETE(faces, f); //faces의 head를 제거함
+    }
+    f = faces->next;
+    do{
+        if (f->visible){//visible한 face를 모두 제거
+            t = f; f = f->next; DELETE(faces, t);
+        }
+        else    f = f->next;
+    } while (f != faces);
+}
+
+void CleanEdges(){
+    pedge e, t;
+
+    e = edges;
+    do{
+        if (e->newface){
+            //newface를 e의 어느 인접면에 대입하는 지 결정함
+            if (e->adjface[0]->visible) e->adjface[0] = e->newface;
+            else    e->adjface[1] = e->newface;
+            e->newface = nullptr;
+        }
+    } while (e != edges);
+
+    while (edges && edges->del){//원형 리스트에서 지워야 하는 edge 제거
+        e = edges; DELETE(edges, e);
+    }
+
+    e = edges->next;
+    do{
+        if (e->del){//지워야 하는 edge 제거
+            t = e; e = e->next; DELETE(edges, t);
+        }
+        else e = e->next;
+    } while (e != edges);
+}
+
+void CleanVertices(){
+    pedge e; pvertex v, t;
+    e = edges;
+    do{
+        e->endpts[0]->onhull = ONHULL; e->endpts[1]->onhull = ONHULL; e = e->next;
+    } while (e != edges);
+
+    while (vertices && vertices->mark && !vertices->onhull){
+        v = vertices;
+        DELETE(vertices, v);
+    }
+    v = vertices->next;
+    do{
+        if (v->mark && !v->onhull){
+            t = v; v = v->next; DELETE(vertices, t);
+        }
+        else{
+            v = v->next;
+        }
+    } while (v != vertices);
+
+    //초기화
+    v = vertices;
+    do{
+        v->duplicate = NULL;
+        v->onhull = !ONHULL;
+        v = v->next;
+    } while (v != vertices);
+}
+
