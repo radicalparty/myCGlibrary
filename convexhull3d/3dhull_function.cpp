@@ -1,6 +1,7 @@
 #include "3dhull_type.cpp"
 #define ck exit(0);
 
+
 void convex3d();
 //function
 void ReadVertices();
@@ -42,8 +43,8 @@ pvertex makeNullVertex(){
 //빈 edge 생성
 pedge makeNullEdge(){
     pedge e; NEW(e);
-    e->adjface[0] = e->adjface[1] = e->newface = nullptr;
-    e->endpts[0] = e->endpts[1] = nullptr;
+    e->adjface[0] = nullptr; e->adjface[1] = nullptr; e->newface = nullptr;
+    e->endpts[0] = nullptr; e->endpts[1] = nullptr;
     e->del = !REMOVED;
     ADD(edges, e);
     return e;
@@ -93,7 +94,7 @@ void DoubleTriangle(){
         v0 = v0->next;
     }
 
-    v1 = v0->next; v2 = v0->next->next;//삼각형을 이루는 세 점
+    v1 = v0->next; v2 = v1->next;//삼각형을 이루는 세 점
 
     v0->mark = PROCESSED; v1->mark = PROCESSED; v2->mark = PROCESSED;
 
@@ -121,6 +122,7 @@ void DoubleTriangle(){
         vol = VolumeSign(f0, v3);
     }
     vertices = v3;
+    //내일: 사면체 making
 }
 
 void ConstructHull(){//볼록 껍질 구성
@@ -130,6 +132,7 @@ void ConstructHull(){//볼록 껍질 구성
     do{
         vnxt = v->next;
         if (!v->mark){//쓰이지 않은 점들을 추가
+            cout << "Point: (" << v->v[0] << ", " << v->v[1] << ", " << v->v[2] << ")\n";
             v->mark = PROCESSED;
             AddOne(v);
             CleanUp();
@@ -157,7 +160,7 @@ ll VolumeSign(pface f, pvertex p){//행렬식 이용한 부피 계산 후 Coplan
     cz = f->vertex[2]->v[Z] - p->v[Z];
 
     vol = ax * (by * cz - bz * cy) + ay * (bz * cx - bx * cz) + az * (bx * cy - by * cx);
-
+    printf("Volume: %f\n", vol);
     if (vol > 0.5)  return 1;
     else if (vol < -0.5) return -1;
     else    return 0;
@@ -173,7 +176,6 @@ pface makeFace(pvertex a, pvertex b, pvertex c, pface fold){
     } else{//동일한 면을 복사 붙여넣기 하므로 edge는 똑값이 넣어줌
         e0 = fold->edge[2]; e1 = fold->edge[1]; e2 = fold->edge[0];
     }
-
     //edge 생성
     e0->endpts[0] = a; e0->endpts[1] = b;
     e1->endpts[0] = b; e1->endpts[1] = c;
@@ -205,6 +207,7 @@ bool AddOne(pvertex p){
     int cnt = 0;
     do{
         //모든 면에 대해서 점이 내부에 있는지, 외부에 있는지 확인
+        print_face(f);
         if (VolumeSign(f, p) < 0){
             f->visible = VISIBLE;
             vis = true;
@@ -218,9 +221,9 @@ bool AddOne(pvertex p){
     }
 
     e = edges;
-    int cp = 0;
     do{
         tmp = e->next;
+        if (e->adjface[0] == nullptr || e->adjface[1] == nullptr) {e = tmp; continue;}
         //인접한 두 면이 모두 p에서 visible할 때 -> 이제 모서리 e는 볼록 껍질을 구성할 수 없음
         if (e->adjface[0]->visible && e->adjface[1]->visible){
             e->del = REMOVED;
@@ -229,6 +232,7 @@ bool AddOne(pvertex p){
         else if (e->adjface[0]->visible || e->adjface[1]->visible){
             e->newface = makeConeFace(e, p);
         }
+
         e = tmp;
     } while (e != edges);
     return true;
@@ -241,15 +245,12 @@ pface makeConeFace(pedge e, pvertex p){
     //두 개의 새로운 edge 생성
     for (int i = 0; i < 2; i++){
         //만약 edge가 존재하면, 복사
-        if (e->endpts[i]->duplicate == nullptr){
+        if (!(new_edge[i] = e->endpts[i]->duplicate)) {
             //아니면, 새로운 edge를 생성
             new_edge[i] = makeNullEdge();
             new_edge[i]->endpts[0] = e->endpts[i];
             new_edge[i]->endpts[1] = p;
             e->endpts[i]->duplicate = new_edge[i];
-        }
-        else{
-            new_edge[i] = e->endpts[i]->duplicate;
         }
     }
 
@@ -376,7 +377,7 @@ void print_ch(){
     pvertex v = vertices;
     std::cout << "Convex Hull\n";
     do{
-        std::cout << v->v[0] << " " << v->v[1] << " " << v->v[2] << "\n";
+        if (v->mark) std::cout << v->v[0] << " " << v->v[1] << " " << v->v[2] << "\n";
         v = v->next;
     } while (v != vertices);
     std::cout << "-----------------------\n";

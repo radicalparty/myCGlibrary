@@ -72,3 +72,11 @@ void ADD(T*& head, T*& p){//값을 원형 리스트에 추가
         head->prev = p;
     }
 }
+
+void print_face(pface p){
+    printf("Vertex of Face:\n");
+    for (auto& i: p->vertex){
+        cout << "Point: (" << i->v[0] << ", " << i->v[1] << ", " << i->v[2] << ")\n";
+    }
+    printf("--------------\n");
+}
